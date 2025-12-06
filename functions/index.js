@@ -61,13 +61,24 @@ async function checkAndNotify(targetDate, titlePrefix) {
             if (userDoc.exists) {
                 const fcmToken = userDoc.data().fcm_token;
                 if (fcmToken) {
+                    // LOGIKA BARU: Cek Tipe Tugas
+                    const isExam = task.type === 'Ujian';
+                    const label = isExam ? 'Jadwal Ujian' : 'Deadline Tugas';
+                    const action = isExam ? 'akan dilaksanakan' : 'tenggat waktunya';
+
                     const message = {
                         token: fcmToken,
                         notification: {
                             title: `Reminder ${titlePrefix}: ${task.title}`,
-                            body: `Tugas ${task.courseName} deadline ${titlePrefix === 'H-1' ? 'Besok' : '3 Hari Lagi'}!`,
+                            // Pesan berubah sesuai tipe:
+                            // Jika Ujian: "Jadwal Ujian Matematika akan dilaksanakan Besok!"
+                            // Jika Tugas: "Deadline Tugas Matematika tenggat waktunya Besok!"
+                            body: `${label} ${task.courseName} ${action} ${titlePrefix === 'H-1' ? 'Besok' : '3 Hari Lagi'}!`,
                         },
-                        data: { taskId: doc.id } // Data tambahan jika diklik
+                        data: {
+                            taskId: doc.id,
+                            click_action: "FLUTTER_NOTIFICATION_CLICK"
+                        }
                     };
                     notifications.push(messaging.send(message));
                 }
