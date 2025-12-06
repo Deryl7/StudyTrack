@@ -9,6 +9,7 @@ class TaskModel {
   final String courseId; // Link ke ID mata kuliah
   final String courseName; // Disimpan biar gampang query notifikasi
   final String ownerId; // ID User pemilik tugas
+  final String type;
 
   TaskModel({
     required this.id,
@@ -19,6 +20,7 @@ class TaskModel {
     required this.courseId,
     required this.courseName,
     required this.ownerId,
+    this.type = 'Tugas',
   });
 
   factory TaskModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -32,6 +34,7 @@ class TaskModel {
       courseId: data['courseId'] ?? '',
       courseName: data['courseName'] ?? '',
       ownerId: data['owner_id'] ?? '',
+      type: data['type'] ?? 'Tugas',
     );
   }
 
@@ -44,6 +47,7 @@ class TaskModel {
       'courseId': courseId,
       'courseName': courseName,
       'owner_id': ownerId,
+      'type': type,
     };
   }
 }
