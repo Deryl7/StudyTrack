@@ -10,6 +10,9 @@ class TaskModel {
   final String courseName; // Disimpan biar gampang query notifikasi
   final String ownerId; // ID User pemilik tugas
   final String type;
+  final String? fileUrl; // Boleh null, karena tidak semua tugas ada filenya
+  final String?
+  fileName; // Opsional: Biar di UI tampil nama filenya (misal: "soal_mtk.pdf")
 
   TaskModel({
     required this.id,
@@ -21,6 +24,8 @@ class TaskModel {
     required this.courseName,
     required this.ownerId,
     this.type = 'Tugas',
+    this.fileUrl,
+    this.fileName,
   });
 
   factory TaskModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -35,6 +40,8 @@ class TaskModel {
       courseName: data['courseName'] ?? '',
       ownerId: data['owner_id'] ?? '',
       type: data['type'] ?? 'Tugas',
+      fileUrl: data['fileUrl'],
+      fileName: data['fileName'],
     );
   }
 
@@ -48,6 +55,8 @@ class TaskModel {
       'courseName': courseName,
       'owner_id': ownerId,
       'type': type,
+      'fileUrl': fileUrl,
+      'fileName': fileName,
     };
   }
 }
