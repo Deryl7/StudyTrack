@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'home/home_screen.dart';
 import 'schedule/schedule_screen.dart';
 
+import 'tasks/task_screen.dart';
+import 'profile/profile_screen.dart';
+
 // Placeholder untuk Tahap 3
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -28,8 +31,8 @@ class _MainLayoutState extends State<MainLayout> {
   final List<Widget> _screens = [
     const HomeScreen(), // Index 0: Dashboard
     const ScheduleScreen(), // Index 1: Jadwal
-    const PlaceholderScreen("Tugas"), // Index 2: Tugas (Tahap 3)
-    const PlaceholderScreen("Profil"), // Index 3: Profil (Tahap 3)
+    const TaskScreen(), // Index 2: Tugas (BARU)
+    const ProfileScreen(), // Index 3: Profil (BARU)
   ];
 
   @override

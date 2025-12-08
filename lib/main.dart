@@ -3,6 +3,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'home/home_screen.dart';
+import 'schedule/schedule_screen.dart';
+// Tambahkan 2 baris ini:
+import 'tasks/task_screen.dart';
+import 'profile/profile_screen.dart';
 
 // Services
 import 'services/auth_service.dart';
