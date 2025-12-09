@@ -113,8 +113,12 @@ class _RegisterPageState extends State<RegisterPage> {
                               isLoading = false;
                             });
                           } else {
-                            // Jika sukses, Navigator pop untuk kembali ke AuthWrapper -> Home
-                            if (mounted) Navigator.pop(context);
+                            // --- BAGIAN PERBAIKAN ---
+                            // Cek apakah widget masih aktif (mounted) sebelum menggunakan context
+                            if (!mounted) return;
+
+                            // Jika aman, lakukan navigasi pop
+                            Navigator.pop(context);
                           }
                         }
                       },

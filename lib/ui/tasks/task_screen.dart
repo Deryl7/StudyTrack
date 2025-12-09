@@ -51,8 +51,9 @@ class _TaskScreenState extends State<TaskScreen> {
       body: StreamBuilder<List<TaskModel>>(
         stream: db.tasks,
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           var tasks = snapshot.data!;
 
@@ -228,7 +229,8 @@ class _AddTaskFormState extends State<AddTaskForm> {
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const LinearProgressIndicator();
               return DropdownButtonFormField<String>(
-                value: _selectedCourseId,
+                value:
+                    _selectedCourseId, // Menggunakan value untuk kontrol state
                 hint: const Text("Pilih Mata Kuliah"),
                 items: snapshot.data!.map((course) {
                   return DropdownMenuItem(
@@ -303,8 +305,9 @@ class _AddTaskFormState extends State<AddTaskForm> {
                   ? null
                   : () async {
                       if (_titleController.text.isEmpty ||
-                          _selectedCourseId == null)
+                          _selectedCourseId == null) {
                         return;
+                      }
 
                       setState(() => _isUploading = true);
 
@@ -334,7 +337,10 @@ class _AddTaskFormState extends State<AddTaskForm> {
 
                       await db.addTask(newTask);
 
-                      if (mounted) Navigator.pop(context);
+                      // --- PERBAIKAN DI SINI ---
+                      // Menggunakan context.mounted untuk memastikan widget masih aktif
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
                     },
               child: _isUploading
                   ? const Text("Mengupload...")
@@ -353,8 +359,6 @@ class _AddTaskFormState extends State<AddTaskForm> {
     );
 
     if (result != null) {
-      // NOTE: Untuk Web Preview, logic ini mungkin perlu penyesuaian di backend service.
-      // Tapi untuk Mobile (Android/iOS) ini sudah benar.
       setState(() {
         _pickedFile = File(result.files.single.path!);
         _fileName = result.files.single.name;
