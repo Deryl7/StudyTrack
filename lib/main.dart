@@ -3,17 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'ui/home/home_screen.dart';
-import 'ui/schedule/schedule_screen.dart';
-// Tambahkan 2 baris ini:
-import 'ui/tasks/task_screen.dart';
-import 'ui/profile/profile_screen.dart';
+
 // Services
 import 'services/auth_service.dart';
 
 // UI Pages
 import 'ui/auth/login_page.dart';
-import 'ui/main_layout.dart'; // <--- JANGAN LUPA BARIS INI (PENTING)
+import 'ui/main_layout.dart'; // <--- Ini yang benar untuk main.dart
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,7 +98,6 @@ class AuthWrapper extends StatelessWidget {
     if (user == null) {
       return const LoginPage();
     } else {
-      // Sekarang aman karena main_layout.dart sudah di-import di atas
       return const MainLayout();
     }
   }
