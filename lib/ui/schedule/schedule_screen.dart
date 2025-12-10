@@ -24,16 +24,19 @@ class ScheduleScreen extends StatelessWidget {
       body: StreamBuilder<List<CourseModel>>(
         stream: db.courses,
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final courses = snapshot.data!;
-          if (courses.isEmpty)
+          if (courses.isEmpty) {
             return const Center(
               child: Text("Belum ada jadwal. Tambah sekarang!"),
             );
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -147,7 +150,7 @@ class ScheduleScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: selectedDay,
+                initialValue: selectedDay,
                 items: List.generate(
                   7,
                   (index) => DropdownMenuItem(

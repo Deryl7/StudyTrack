@@ -4,6 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 
+// --- IMPORT NAVIGASI (Sesuai Struktur Folder Anda) ---
+import 'edit_profile_screen.dart'; // Satu folder dengan profile_screen.dart
+import 'support_screen.dart'; // Satu folder dengan profile_screen.dart
+import '../notifications/notification_screen.dart'; // Mundur satu folder, masuk notifications
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -19,12 +24,13 @@ class ProfileScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              // Foto Profil Dummy
+
+              // --- FOTO PROFIL ---
               CircleAvatar(
                 radius: 60,
                 backgroundColor: Theme.of(
                   context,
-                ).primaryColor.withValues(alpha: 0.1),
+                ).primaryColor.withOpacity(0.1),
                 child: Icon(
                   Icons.person,
                   size: 60,
@@ -33,6 +39,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
+              // --- DATA USER ---
               Text(
                 user?.displayName ?? "Mahasiswa",
                 style: GoogleFonts.poppins(
@@ -47,20 +54,69 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Menu Options
-              _buildProfileMenu(Icons.settings, "Pengaturan Akun"),
-              _buildProfileMenu(Icons.notifications, "Notifikasi"),
-              _buildProfileMenu(Icons.help_outline, "Bantuan & Support"),
+              // --- MENU NAVIGASI ---
+
+              // 1. TOMBOL PENGATURAN AKUN
+              _buildProfileMenu(
+                icon: Icons.settings,
+                title: "Pengaturan Akun",
+                onTap: () {
+                  // Navigasi ke EditProfileScreen dengan mengirim data
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(
+                        // Mengirim data user saat ini ke form edit
+                        currentName: user?.displayName ?? "",
+                        currentNim:
+                            "2021110045", // Ganti dengan data real jika sudah ada di database
+                        currentMajor:
+                            "Computer Science", // Ganti dengan data real jika sudah ada
+                        currentImage: null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // 2. TOMBOL NOTIFIKASI
+              _buildProfileMenu(
+                icon: Icons.notifications,
+                title: "Notifikasi",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      // Hapus 'const' jika NotificationScreen punya konten dinamis
+                      builder: (context) => const NotificationScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              // 3. TOMBOL BANTUAN & SUPPORT
+              _buildProfileMenu(
+                icon: Icons.help_outline,
+                title: "Bantuan & Support",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      // Pastikan menggunakan SupportScreen() yang benar
+                      builder: (context) => const SupportScreen(),
+                    ),
+                  );
+                },
+              ),
 
               const Spacer(),
 
-              // Logout Button
+              // --- TOMBOL LOGOUT ---
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () async {
                     await AuthService().signOut();
-                    // AuthWrapper di main.dart otomatis handle navigasi ke Login
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
                   label: const Text(
@@ -83,8 +139,14 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileMenu(IconData icon, String title) {
+  // Widget Helper untuk membuat Menu
+  Widget _buildProfileMenu({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
+      onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -100,7 +162,6 @@ class ProfileScreen extends StatelessWidget {
         color: Colors.grey,
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      onTap: () {}, // Belum ada fungsi
     );
   }
 }
