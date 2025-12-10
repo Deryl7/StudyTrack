@@ -9,7 +9,7 @@ import 'services/auth_service.dart';
 
 // UI Pages
 import 'ui/auth/login_page.dart';
-import 'ui/main_layout.dart'; // <--- Ini yang benar untuk main.dart
+import 'ui/main_layout.dart'; // <--- JANGAN LUPA BARIS INI (PENTING)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,6 +98,7 @@ class AuthWrapper extends StatelessWidget {
     if (user == null) {
       return const LoginPage();
     } else {
+      // Sekarang aman karena main_layout.dart sudah di-import di atas
       return const MainLayout();
     }
   }
