@@ -9,6 +9,10 @@ import '../../services/database_service.dart';
 import '../../models/task_model.dart';
 import '../../models/course_model.dart';
 
+// IMPORT NOTIFIKASI (Pastikan path ini sesuai dengan struktur folder Anda)
+// Biasanya: ../notifications/notification_screen.dart
+import '../notifications/notification_screen.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -27,8 +31,8 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
-              _buildHeader(user),
+              // HEADER (Perlu pass 'context' untuk navigasi)
+              _buildHeader(context, user),
               const SizedBox(height: 24),
 
               // SECTION 1: STATISTIK TUGAS (STREAM)
@@ -84,7 +88,6 @@ class HomeScreen extends StatelessWidget {
                   }
 
                   // Filter Jadwal Hari Ini (1=Senin, dst)
-                  // DateTime.weekday: 1=Senin, 7=Minggu. Cocok dengan model kita.
                   final today = DateTime.now().weekday;
                   final todayCourses = snapshot.data!
                       .where((c) => c.day == today)
@@ -111,29 +114,48 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(User user) {
+  // UPDATE: Menambahkan parameter BuildContext context
+  Widget _buildHeader(BuildContext context, User user) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Halo, ${user.displayName ?? 'Mahasiswa'}! 👋",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        Expanded(
+          // Gunakan Expanded agar teks tidak menabrak icon jika nama panjang
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Halo, ${user.displayName ?? 'Mahasiswa'}! 👋",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis, // Mencegah overflow teks
+                maxLines: 1,
               ),
-            ),
-            Text(
-              DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
-              style: GoogleFonts.inter(color: Colors.grey[600]),
-            ),
-          ],
+              Text(
+                DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
+                style: GoogleFonts.inter(color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
-        CircleAvatar(
-          backgroundColor: Colors.blue.shade100,
-          child: const Icon(Icons.notifications_outlined, color: Colors.blue),
+
+        // UPDATE: Membungkus Icon dengan InkWell untuk Navigasi
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(50), // Efek klik bulat
+          child: CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            child: const Icon(Icons.notifications_outlined, color: Colors.blue),
+          ),
         ),
       ],
     );
@@ -147,12 +169,14 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(
+              0.1,
+            ), // Ubah withValues ke withOpacity agar aman
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +213,7 @@ class HomeScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
