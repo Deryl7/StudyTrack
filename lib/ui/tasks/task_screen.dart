@@ -143,16 +143,24 @@ class _TaskScreenState extends State<TaskScreen> {
               InkWell(
                 onTap: () async {
                   if (task.fileUrl != null) {
-                    final Uri url = Uri.parse(task.fileUrl!);
-                    // Logic buka link
-                    if (await canLaunchUrl(url)) {
+                    try {
+                      final Uri url = Uri.parse(task.fileUrl!);
+
+                      // LOGIKA BARU: Langsung paksa launch tanpa cek canLaunchUrl dulu
+                      // Mode externalApplication memaksa HP cari aplikasi pembuka PDF/Browser
                       await launchUrl(
                         url,
                         mode: LaunchMode.externalApplication,
                       );
-                    } else {
+                    } catch (e) {
+                      // Kalau crash/gagal, baru munculin pesan error
+                      print("Error buka file: $e");
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Gagal membuka file")),
+                        const SnackBar(
+                          content: Text(
+                            "Tidak ada aplikasi untuk membuka file ini",
+                          ),
+                        ),
                       );
                     }
                   }
