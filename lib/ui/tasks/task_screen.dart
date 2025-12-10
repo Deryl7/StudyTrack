@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/database_service.dart';
 import '../../services/storage_services.dart';
@@ -138,18 +139,47 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             if (task.fileName != null) ...[
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.attach_file, size: 14, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    task.fileName!,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
+              // Bungkus dengan InkWell agar bisa diklik
+              InkWell(
+                onTap: () async {
+                  if (task.fileUrl != null) {
+                    final Uri url = Uri.parse(task.fileUrl!);
+                    // Logic buka link
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Gagal membuka file")),
+                      );
+                    }
+                  }
+                },
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.attach_file,
+                      size: 14,
+                      color: Colors.blue,
+                    ), // Ganti warna jadi biru biar kelihatan clickable
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        task.fileName!,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ],
@@ -246,19 +276,41 @@ class _AddTaskFormState extends State<AddTaskForm> {
 
           const SizedBox(height: 12),
 
-          // Date Picker sederhana
+          // Date Picker
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text("Deadline"),
-            trailing: Text(DateFormat('EEE, d MMM yyyy').format(_selectedDate)),
+            trailing: Text(
+              DateFormat('EEE, d MMM yyyy • HH:mm').format(_selectedDate),
+            ),
             onTap: () async {
-              final picked = await showDatePicker(
+              // Pilih tanggal
+              final pickedDate = await showDatePicker(
                 context: context,
                 initialDate: _selectedDate,
                 firstDate: DateTime.now(),
                 lastDate: DateTime(2030),
               );
-              if (picked != null) setState(() => _selectedDate = picked);
+              if (pickedDate == null) return;
+
+              // Pilih Jam
+              if (!context.mounted) return;
+              final pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.fromDateTime(_selectedDate),
+              );
+              if (pickedTime == null) return;
+
+              // Gabungkan Tanggal + Jam
+              setState(() {
+                _selectedDate = DateTime(
+                  pickedDate.year,
+                  pickedDate.month,
+                  pickedDate.day,
+                  pickedTime.hour,
+                  pickedTime.minute,
+                );
+              });
             },
           ),
 
