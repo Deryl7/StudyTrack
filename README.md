@@ -105,8 +105,8 @@ lib/
 Project ini dibuat untuk memenuhi Tugas Final Project Pemrograman Mobile oleh:
 
 1.  **[Deryl Dionedith Tammu]** - *Backend Engineer & Data Layer* (Firebase, API, Cloud Functions)
-2.  **[Irfan Tanzilur Rahman]** - *UI/UX Designer* (Layouting, Screen Design, Assets)
-3.  **[Muhamad Fauzan Rusda]** - *Integration & Logic* (State Management, Wiring Backend-Frontend)
+2.  **[Muhamad Fauzan Rusda]** - *UI/UX Designer* (Layouting, Screen Design, Assets)
+3.  **[Irfan Tanzilur Rahman]** - *Integration & Logic* (State Management, Wiring Backend-Frontend)
 
 -----
 
