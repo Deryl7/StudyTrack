@@ -10,7 +10,7 @@
     </queries>
     
     <application
-        android:label="study_track"
+        android:label="StudyTrack"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
