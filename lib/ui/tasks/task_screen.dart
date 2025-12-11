@@ -12,6 +12,7 @@ import '../../services/database_service.dart';
 import '../../services/storage_services.dart';
 import '../../models/task_model.dart';
 import '../../models/course_model.dart';
+import '../../services/calendar_service.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -192,9 +193,62 @@ class _TaskScreenState extends State<TaskScreen> {
             ],
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-          onPressed: () => db.deleteTask(task.id),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min, // Agar tidak memakan tempat
+          children: [
+            // TOMBOL 1: EXPORT KE CALENDAR
+            IconButton(
+              icon: const Icon(
+                Icons.calendar_month_outlined,
+                color: Colors.blue,
+              ),
+              tooltip: "Export ke Google Calendar",
+              onPressed: () async {
+                final startTime = task.deadline.subtract(
+                  const Duration(hours: 1),
+                );
+                final endTime = task.deadline;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Menghubungkan ke Google Calendar..."),
+                  ),
+                );
+
+                // Panggil fungsi baru yang mengembalikan String pesan
+                String resultMessage = await CalendarService().insertEvent(
+                  title: "DEADLINE: ${task.title}",
+                  description:
+                      "Mata Kuliah: ${task.courseName}\n${task.description}",
+                  startTime: startTime,
+                  endTime: endTime,
+                );
+
+                if (context.mounted) {
+                  // Tampilkan pesan asli dari Google di layar HP
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        resultMessage,
+                      ), // <--- Ini akan memberitahu kita errornya apa
+                      backgroundColor: resultMessage.contains("SUKSES")
+                          ? Colors.green
+                          : Colors.red,
+                      duration: const Duration(
+                        seconds: 5,
+                      ), // Tahan lama biar sempat baca
+                    ),
+                  );
+                }
+              },
+            ),
+
+            // TOMBOL 2: DELETE (Yang Lama)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              onPressed: () => db.deleteTask(task.id),
+            ),
+          ],
         ),
       ),
     );

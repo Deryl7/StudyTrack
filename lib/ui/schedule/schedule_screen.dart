@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../services/database_service.dart';
 import '../../models/course_model.dart';
+import '../../services/calendar_service.dart';
 
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
@@ -66,9 +67,98 @@ class ScheduleScreen extends StatelessWidget {
                     "${_dayToString(course.day)} • ${course.startTime} - ${course.endTime}\n${course.lecturer}",
                   ),
                   isThreeLine: true,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => db.deleteCourse(course.id),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // TOMBOL EXPORT
+                      IconButton(
+                        icon: const Icon(
+                          Icons.calendar_today,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () async {
+                          // LOGIKA MENCARI TANGGAL "SENIN" (misalnya) BERIKUTNYA
+
+                          final now = DateTime.now();
+                          // Parsing jam string "08:00" ke integer jam & menit
+                          final startParts = course.startTime.split(
+                            ':',
+                          ); // ["08", "00"]
+                          final endParts = course.endTime.split(
+                            ':',
+                          ); // ["10", "00"]
+
+                          final startH = int.parse(startParts[0]);
+                          final startM = int.parse(startParts[1]);
+                          final endH = int.parse(endParts[0]);
+                          final endM = int.parse(endParts[1]);
+
+                          // Cari tanggal untuk "Hari Kuliah" terdekat
+                          // course.day: 1=Senin ... 7=Minggu
+                          // now.weekday: 1=Senin ... 7=Minggu
+                          int daysDiff = course.day - now.weekday;
+                          // Kalau harinya sudah lewat (atau hari ini tapi jamnya lewat),
+                          // kita targetkan minggu depan.
+                          if (daysDiff < 0) {
+                            daysDiff += 7;
+                          } else if (daysDiff == 0) {
+                            // Kalau hari ini, cek jamnya. Kalau jam mulai < jam sekarang,
+                            // anggap jadwal minggu depan.
+                            final nowH = now.hour;
+                            final nowM = now.minute;
+                            if (startH < nowH ||
+                                (startH == nowH && startM < nowM)) {
+                              daysDiff += 7;
+                            }
+                          }
+
+                          final targetDate = now.add(Duration(days: daysDiff));
+
+                          // Gabungkan Tanggal + Jam
+                          final startDateTime = DateTime(
+                            targetDate.year,
+                            targetDate.month,
+                            targetDate.day,
+                            startH,
+                            startM,
+                          );
+                          final endDateTime = DateTime(
+                            targetDate.year,
+                            targetDate.month,
+                            targetDate.day,
+                            endH,
+                            endM,
+                          );
+
+                          await CalendarService().insertEvent(
+                            title: "Kuliah: ${course.name}",
+                            description:
+                                "Ruang: ${course.room}\nDosen: ${course.lecturer}",
+                            startTime: startDateTime,
+                            endTime: endDateTime,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Jadwal minggu ini ditambahkan ke Kalender!",
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+
+                      // TOMBOL DELETE
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => db.deleteCourse(course.id),
+                      ),
+                    ],
                   ),
                 ),
               );
