@@ -1,126 +1,212 @@
-// File: lib/edit_profile_screen.dart
-
-import 'dart:io';
+import 'dart:io'; // Buat File
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart'; // Plugin baru
+
+// Import Model & Services
+import '../../models/user_model.dart';
+import '../../services/database_service.dart';
+import '../../services/storage_services.dart'; // Jangan lupa import ini (namanya sesuaikan dengan file kamu, kadang storage_service.dart atau storage_services.dart)
 
 class EditProfileScreen extends StatefulWidget {
-  // Data yang diterima dari halaman sebelumnya
-  final String currentName;
-  final String currentNim;
-  final String currentMajor;
-  final File? currentImage;
-
-  const EditProfileScreen({
-    Key? key,
-    required this.currentName,
-    required this.currentNim,
-    required this.currentMajor,
-    this.currentImage,
-  }) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
-  _EditProfileScreenState createState() => _EditProfileScreenState();
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late TextEditingController _nameController;
-  late TextEditingController _nimController;
-  String? _selectedMajor;
-  File? _image;
+  final _nameController = TextEditingController();
+  final _nimController = TextEditingController();
+  final _majorController = TextEditingController();
 
-  final List<String> majors = [
-    'Computer Science',
-    'Information Systems',
-    'Software Engineering',
-    'Data Science',
-  ];
+  bool _isLoading = false;
+  File? _pickedImage; // File foto baru yang dipilih dari galeri
+  String? _currentPhotoUrl; // URL foto lama dari database (untuk preview)
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.currentName);
-    _nimController = TextEditingController(text: widget.currentNim);
-    _selectedMajor = majors.contains(widget.currentMajor)
-        ? widget.currentMajor
-        : majors.first;
-    _image = widget.currentImage;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  Future<void> _loadUserData() async {
+    final userAuth = Provider.of<User?>(context, listen: false);
+    if (userAuth != null) {
+      UserModel? userData = await DatabaseService(
+        uid: userAuth.uid,
+      ).getUserData();
 
-    if (pickedFile != null) {
+      if (userData != null && mounted) {
+        setState(() {
+          _nameController.text = userData.name;
+          _nimController.text = userData.nim;
+          _majorController.text = userData.major;
+          _currentPhotoUrl = userData.photoUrl; // Simpan URL foto lama
+        });
+      }
+    }
+  }
+
+  // LOGIC 1: AMBIL FOTO DARI GALERI
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        _pickedImage = File(image.path);
       });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    final userAuth = Provider.of<User?>(context, listen: false);
+    if (userAuth == null) return;
+
+    if (_nameController.text.isEmpty ||
+        _nimController.text.isEmpty ||
+        _majorController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Semua data harus diisi")));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      String? newPhotoUrl = _currentPhotoUrl; // Default: pakai foto lama
+
+      // LOGIC 2: UPLOAD FOTO (Jika user memilih foto baru)
+      if (_pickedImage != null) {
+        // Panggil StorageService yang baru kita buat
+        // Pastikan nama filenya 'storage_service.dart' atau sesuaikan import di atas
+        newPhotoUrl = await StorageService().uploadProfileImage(
+          _pickedImage!,
+          userAuth.uid,
+        );
+      }
+
+      // 3. Update ke Firestore
+      // Kita ambil data lama untuk mempertahankan token FCM
+      UserModel? existingData = await DatabaseService(
+        uid: userAuth.uid,
+      ).getUserData();
+
+      await DatabaseService(uid: userAuth.uid).updateUserData(
+        UserModel(
+          uid: userAuth.uid,
+          email: userAuth.email ?? '',
+          name: _nameController.text.trim(),
+          nim: _nimController.text.trim(),
+          major: _majorController.text.trim(),
+          fcmToken: existingData?.fcmToken,
+          photoUrl: newPhotoUrl, // Simpan URL baru (atau lama)
+        ),
+      );
+
+      // 4. Update Auth DisplayName
+      if (userAuth.displayName != _nameController.text.trim()) {
+        await userAuth.updateDisplayName(_nameController.text.trim());
+        await userAuth.reload();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profil berhasil disimpan!")),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print("Error saving profile: $e");
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Gagal menyimpan profil")));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: Text(
-          "Pengaturan Akun",
-          style: GoogleFonts.poppins(
-            color: Colors.black,
+          'Edit Profil',
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: const Color(0xFF4A90E2),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- FOTO PROFIL ---
+            // --- BAGIAN FOTO PROFIL ---
             Center(
               child: Stack(
                 children: [
                   Container(
-                    width: 110,
-                    height: 110,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey[100],
-                      image: _image != null
+                      color: Colors.grey[200],
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                      // Logic Tampilan Gambar:
+                      // 1. Jika ada foto baru (_pickedImage) -> Tampilkan itu.
+                      // 2. Jika tidak ada foto baru, tapi ada foto lama di DB (_currentPhotoUrl) -> Tampilkan dari Network.
+                      // 3. Jika tidak ada keduanya -> Tampilkan Icon Person.
+                      image: _pickedImage != null
                           ? DecorationImage(
-                              image: FileImage(_image!),
+                              image: FileImage(_pickedImage!),
                               fit: BoxFit.cover,
                             )
-                          : null,
+                          : (_currentPhotoUrl != null
+                                ? DecorationImage(
+                                    image: NetworkImage(_currentPhotoUrl!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null),
                     ),
-                    child: _image == null
-                        ? Icon(Icons.person, size: 50, color: Colors.grey[400])
+                    child: (_pickedImage == null && _currentPhotoUrl == null)
+                        ? const Icon(Icons.person, size: 60, color: Colors.grey)
                         : null,
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: GestureDetector(
-                      onTap: _pickImage,
+                      onTap: _pickImage, // Klik tombol kamera -> Buka Galeri
                       child: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent,
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          color: Color(0xFF4A90E2),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt,
+                          size: 20,
                           color: Colors.white,
-                          size: 18,
                         ),
                       ),
                     ),
@@ -128,94 +214,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
-            Center(
-              child: TextButton(
-                onPressed: _pickImage,
-                child: Text(
-                  "Ubah Foto",
-                  style: GoogleFonts.poppins(color: Colors.blueAccent),
-                ),
-              ),
-            ),
+            const SizedBox(height: 30),
 
-            SizedBox(height: 30),
-
-            // --- INPUT FIELDS ---
-            _buildLabel("Nama Lengkap"),
-            _buildTextField(controller: _nameController, hint: "Nama Lengkap"),
-
-            SizedBox(height: 20),
-
-            _buildLabel("NIM / Student ID"),
             _buildTextField(
+              label: 'Nama Lengkap',
+              controller: _nameController,
+              icon: Icons.person_outline,
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              label: 'NIM',
               controller: _nimController,
-              hint: "NIM",
-              isNumber: true,
+              icon: Icons.badge_outlined,
             ),
-
-            SizedBox(height: 20),
-
-            _buildLabel("Jurusan"),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedMajor,
-                  isExpanded: true,
-                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                  items: majors.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style: GoogleFonts.poppins(fontSize: 14),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedMajor = newValue;
-                    });
-                  },
-                ),
-              ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              label: 'Jurusan',
+              controller: _majorController,
+              icon: Icons.school_outlined,
             ),
+            const SizedBox(height: 40),
 
-            SizedBox(height: 40),
-
-            // --- TOMBOL SIMPAN ---
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, {
-                    'name': _nameController.text,
-                    'nim': _nimController.text,
-                    'major': _selectedMajor,
-                    'image': _image,
-                  });
-                },
+                onPressed: _isLoading ? null : _saveProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: const Color(0xFF4A90E2),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 0,
                 ),
-                child: Text(
-                  "Simpan Perubahan",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Simpan Perubahan',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -225,42 +265,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildTextField({
+    required String label,
     required TextEditingController controller,
-    required String hint,
-    bool isNumber = false,
+    required IconData icon,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: GoogleFonts.poppins(fontSize: 14),
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: const Color(0xFF4A90E2)),
+            hintText: 'Masukkan $label',
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.blueAccent),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
-      ),
+      ],
     );
   }
 }

@@ -8,19 +8,16 @@ import 'package:intl/intl.dart';
 import '../../services/database_service.dart';
 import '../../models/task_model.dart';
 import '../../models/course_model.dart';
-
-// IMPORT NOTIFIKASI (Pastikan path ini sesuai dengan struktur folder Anda)
-// Biasanya: ../notifications/notification_screen.dart
-import '../notifications/notification_screen.dart';
+import '../../models/user_model.dart'; // Jangan lupa import UserModel
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 1. Ambil User UID dari Provider
+    // 1. Ambil User UID dari Provider (Auth)
     final user = Provider.of<User?>(context);
-    if (user == null) return const SizedBox(); // Safety check
+    if (user == null) return const SizedBox();
 
     final db = DatabaseService(uid: user.uid);
 
@@ -31,8 +28,24 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER (Perlu pass 'context' untuk navigasi)
-              _buildHeader(context, user),
+              // HEADER (UPDATED: Pakai StreamBuilder biar Realtime)
+              StreamBuilder<UserModel>(
+                stream: db.userData, // Stream data user dari Firestore
+                builder: (context, snapshot) {
+                  // Fallback nama jika data belum load: pakai data Auth atau "Mahasiswa"
+                  String displayName = user.displayName ?? "Mahasiswa";
+
+                  if (snapshot.hasData) {
+                    final userData = snapshot.data!;
+                    if (userData.name.isNotEmpty) {
+                      displayName = userData.name;
+                    }
+                  }
+
+                  return _buildHeader(displayName);
+                },
+              ),
+
               const SizedBox(height: 24),
 
               // SECTION 1: STATISTIK TUGAS (STREAM)
@@ -43,9 +56,7 @@ class HomeScreen extends StatelessWidget {
 
                   final tasks = snapshot.data!;
                   final pendingTasks = tasks.where((t) => !t.isDone).length;
-                  final completedToday = tasks
-                      .where((t) => t.isDone)
-                      .length; // Simplifikasi logic
+                  final completedToday = tasks.where((t) => t.isDone).length;
 
                   return Row(
                     children: [
@@ -87,7 +98,6 @@ class HomeScreen extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  // Filter Jadwal Hari Ini (1=Senin, dst)
                   final today = DateTime.now().weekday;
                   final todayCourses = snapshot.data!
                       .where((c) => c.day == today)
@@ -114,53 +124,36 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // UPDATE: Menambahkan parameter BuildContext context
-  Widget _buildHeader(BuildContext context, User user) {
+  // Header sekarang menerima String nama dinamis
+  Widget _buildHeader(String name) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          // Gunakan Expanded agar teks tidak menabrak icon jika nama panjang
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Halo, ${user.displayName ?? 'Mahasiswa'}! 👋",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                overflow: TextOverflow.ellipsis, // Mencegah overflow teks
-                maxLines: 1,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Halo, $name! 👋",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
-                style: GoogleFonts.inter(color: Colors.grey[600]),
-              ),
-            ],
-          ),
+            ),
+            Text(
+              DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
+              style: GoogleFonts.inter(color: Colors.grey[600]),
+            ),
+          ],
         ),
-
-        // UPDATE: Membungkus Icon dengan InkWell untuk Navigasi
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationScreen(),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(50), // Efek klik bulat
-          child: CircleAvatar(
-            backgroundColor: Colors.blue.shade100,
-            child: const Icon(Icons.notifications_outlined, color: Colors.blue),
-          ),
+        CircleAvatar(
+          backgroundColor: Colors.blue.shade100,
+          child: const Icon(Icons.notifications_outlined, color: Colors.blue),
         ),
       ],
     );
   }
 
+  // ... sisa widget helper (_buildStatCard, _buildCourseCard, _buildEmptyState) biarkan sama ...
   Widget _buildStatCard(String title, String count, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -169,14 +162,12 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(
-              0.1,
-            ), // Ubah withValues ke withOpacity agar aman
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +204,7 @@ class HomeScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),

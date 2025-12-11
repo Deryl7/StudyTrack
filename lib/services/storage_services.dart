@@ -42,4 +42,21 @@ class StorageService {
       print("Error Delete File: $e");
     }
   }
+
+  // FUNGSI BARU: Upload Foto Profil
+  Future<String?> uploadProfileImage(File file, String uid) async {
+    try {
+      // Simpan di folder 'user_profiles', nama filenya adalah UID user.
+      // Jadi kalau user upload lagi, foto lama otomatis tertimpa.
+      Reference ref = _storage.ref().child('user_profiles/$uid.jpg');
+
+      UploadTask uploadTask = ref.putFile(file);
+      TaskSnapshot snapshot = await uploadTask;
+
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      print("Error Upload Profile: $e");
+      return null;
+    }
+  }
 }

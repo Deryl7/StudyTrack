@@ -106,4 +106,25 @@ class DatabaseService {
       return TaskModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     }).toList();
   }
+
+  // Ambil Data User (GET)
+  Future<UserModel?> getUserData() async {
+    try {
+      DocumentSnapshot doc = await userCollection.doc(uid).get();
+      if (doc.exists) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      }
+      return null;
+    } catch (e) {
+      print("Error Get User Data: $e");
+      return null;
+    }
+  }
+
+  // Mengambil Data User secara Realtime (Otomatis Update)
+  Stream<UserModel> get userData {
+    return userCollection.doc(uid).snapshots().map((doc) {
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    });
+  }
 }

@@ -3,8 +3,9 @@ class UserModel {
   final String email;
   final String name;
   final String nim;
-  final String major; // Program Studi
-  final String? fcmToken; // Untuk notifikasi
+  final String major;
+  final String? fcmToken;
+  final String? photoUrl;
 
   UserModel({
     required this.uid,
@@ -13,6 +14,7 @@ class UserModel {
     required this.nim,
     required this.major,
     this.fcmToken,
+    this.photoUrl,
   });
 
   // Mengubah data dari Firestore ke objek Dart
@@ -24,6 +26,7 @@ class UserModel {
       nim: data['nim'] ?? '',
       major: data['major'] ?? '',
       fcmToken: data['fcm_token'],
+      photoUrl: data['photo_url'],
     );
   }
 
@@ -35,6 +38,7 @@ class UserModel {
       'nim': nim,
       'major': major,
       'fcm_token': fcmToken,
+      'photo_url': photoUrl,
     };
   }
 }
