@@ -1,9 +1,3 @@
-Tentu, ini adalah draf **README.md** yang profesional dan lengkap untuk proyek **StudyTrack**.
-
-Isi file ini mencakup deskripsi proyek, fitur unggulan, teknologi yang digunakan, cara instalasi, dan kredit anggota kelompok. Ini akan sangat berguna untuk dokumentasi di GitHub dan penilaian dosen.
-
-Silakan buat file baru bernama `README.md` di root folder proyek kamu, lalu copy-paste kode di bawah ini:
-
 # 🎓 StudyTrack - Personal Academic Assistant
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-blue?logo=flutter)
