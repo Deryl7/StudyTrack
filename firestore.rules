@@ -19,5 +19,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
     }
+
+    // Izinkan user yang sudah login untuk membuat (create) feedback
+    match /feedbacks/{feedbackId} {
+      allow create: if request.auth != null;
+      // Opsional: Hanya admin yang boleh baca (read), user cuma boleh kirim
+    }
   }
 }

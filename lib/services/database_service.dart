@@ -127,4 +127,19 @@ class DatabaseService {
       return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     });
   }
+
+  // Kirim Feedback
+  Future<void> sendFeedback(String content) async {
+    try {
+      await FirebaseFirestore.instance.collection('feedbacks').add({
+        'userId': uid,
+        'content': content,
+        'timestamp': FieldValue.serverTimestamp(),
+        // Opsional: Bisa tambah info lain seperti versi aplikasi, tipe HP, dll
+      });
+    } catch (e) {
+      print("Error sending feedback: $e");
+      rethrow;
+    }
+  }
 }
