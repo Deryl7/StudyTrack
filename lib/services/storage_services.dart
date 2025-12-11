@@ -43,7 +43,7 @@ class StorageService {
     }
   }
 
-  // FUNGSI BARU: Upload Foto Profil
+  // Upload Foto Profil
   Future<String?> uploadProfileImage(File file, String uid) async {
     try {
       // Simpan di folder 'user_profiles', nama filenya adalah UID user.

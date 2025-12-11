@@ -7,7 +7,7 @@ class CalendarService {
     scopes: [CalendarApi.calendarEventsScope],
   );
 
-  // FUNGSI BARU: Mengembalikan String (Pesan Sukses atau Pesan Error)
+  // Mengembalikan String (Pesan Sukses atau Pesan Error)
   Future<String> insertEvent({
     required String title,
     required String description,
@@ -42,8 +42,7 @@ class CalendarService {
         return "Aneh: Berhasil tapi tidak ada link.";
       }
     } catch (e) {
-      // INI KUNCINYA: Kita kembalikan pesan error aslinya
-      // Contoh: "DetailedApiRequestError(status: 403, message: ...)"
+      // Kembalikan pesan error aslinya
       return "ERROR GOOGLE: $e";
     }
   }

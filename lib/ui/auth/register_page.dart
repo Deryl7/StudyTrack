@@ -113,7 +113,6 @@ class _RegisterPageState extends State<RegisterPage> {
                               isLoading = false;
                             });
                           } else {
-                            // --- BAGIAN PERBAIKAN ---
                             // Cek apakah widget masih aktif (mounted) sebelum menggunakan context
                             if (!mounted) return;
 

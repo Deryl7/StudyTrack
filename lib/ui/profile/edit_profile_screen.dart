@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       // 3. Update ke Firestore
-      // Kita ambil data lama untuk mempertahankan token FCM
+      // Ambil data lama untuk mempertahankan token FCM
       UserModel? existingData = await DatabaseService(
         uid: userAuth.uid,
       ).getUserData();

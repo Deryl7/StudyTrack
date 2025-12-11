@@ -39,8 +39,6 @@ class _MainLayoutState extends State<MainLayout> {
     const ProfileScreen(), // Index 3: Profil (BARU)
   ];
 
-  // --- TAMBAHAN BARU (MULAI DARI SINI) ---
-
   @override
   void initState() {
     super.initState();
@@ -76,20 +74,19 @@ class _MainLayoutState extends State<MainLayout> {
           if (user != null) {
             await DatabaseService(uid: user.uid).updateFcmToken(token);
             print(
-              "✅ SUKSES! Token tersimpan di Database untuk user: ${user.email}",
+              "SUKSES! Token tersimpan di Database untuk user: ${user.email}",
             );
           } else {
-            print("❌ GAGAL: User null (Belum terdeteksi login).");
+            print("GAGAL: User null (Belum terdeteksi login).");
           }
         }
       } catch (e) {
-        print("❌ ERROR: Gagal ambil token - $e");
+        print("ERROR: Gagal ambil token - $e");
       }
     } else {
-      print('❌ Izin notifikasi ditolak user.');
+      print('Izin notifikasi ditolak user.');
     }
   }
-  // --- BATAS AKHIR TAMBAHAN ---
 
   @override
   Widget build(BuildContext context) {
