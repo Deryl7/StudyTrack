@@ -1,3 +1,9 @@
+Tentu, ini adalah draf **README.md** yang profesional dan lengkap untuk proyek **StudyTrack**.
+
+Isi file ini mencakup deskripsi proyek, fitur unggulan, teknologi yang digunakan, cara instalasi, dan kredit anggota kelompok. Ini akan sangat berguna untuk dokumentasi di GitHub dan penilaian dosen.
+
+Silakan buat file baru bernama `README.md` di root folder proyek kamu, lalu copy-paste kode di bawah ini:
+
 # 🎓 StudyTrack - Personal Academic Assistant
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-blue?logo=flutter)
@@ -44,7 +50,6 @@
 ---
 
 ## 📸 Screenshots
-
 
 | Dashboard | Jadwal Kuliah | Detail Tugas | Profil User |
 |:---:|:---:|:---:|:---:|
@@ -97,3 +102,20 @@ lib/
 │   ├── tasks/       # Halaman Tugas
 │   └── profile/     # Halaman Profil & Settings
 └── main.dart        # Entry Point
+````
+
+-----
+
+## 👥 Tim Pengembang
+
+Project ini dibuat untuk memenuhi Tugas Final Project Pemrograman Mobile oleh:
+
+1.  **[Deryl Dionedith Tammu]** - *Backend Engineer & Data Layer* (Firebase, API, Cloud Functions)
+2.  **[Irfan Tanzilur Rahman]** - *UI/UX Designer* (Layouting, Screen Design, Assets)
+3.  **[Muhamad Fauzan Rusda]** - *Integration & Logic* (State Management, Wiring Backend-Frontend)
+
+-----
+
+## 📄 Lisensi
+
+Copyright © 2025 StudyTrack Team. All rights reserved.
