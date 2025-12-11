@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import 'database_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -28,6 +29,9 @@ class AuthService {
       User? user = result.user;
 
       if (user != null) {
+        // Update Nama di "Kartu Identitas" (Auth)
+        await user.updateDisplayName(name);
+        await user.reload();
         // B. Jika sukses, buat dokumen profil di Firestore (Database Data)
         // Kita panggil DatabaseService yang sudah kamu buat
         DatabaseService dbService = DatabaseService(uid: user.uid);
@@ -69,6 +73,18 @@ class AuthService {
   // 3. LOGOUT
   Future<void> signOut() async {
     try {
+      // Ambil user saat ini sebelum logout
+      User? user = _auth.currentUser;
+
+      if (user != null) {
+        // Hapus token dari database agar tidak dapat notifikasi lagi di HP ini
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'fcm_token': null}); // Set null
+      }
+
+      // Baru logout dari Auth
       return await _auth.signOut();
     } catch (e) {
       print("Error Logout: $e");

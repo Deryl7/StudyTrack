@@ -12,10 +12,19 @@
           "package_name": "com.example.study_track"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "508103828402-b08b1lvpje1noef3bm8d7klfcupmv7df.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.study_track",
+            "certificate_hash": "a215b796620fd880627912a2bf6ed4d8054a5950"
+          }
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAOscaaoBJ7_WGQugzwkkY95Dmi5A-c-pA"
+          "current_key": "AIzaSyDaPS1o7msPzdpUcoSTz5a3hCmXt47OTP4"
         }
       ],
       "services": {
