@@ -8,7 +8,8 @@ import 'package:intl/intl.dart';
 import '../../services/database_service.dart';
 import '../../models/task_model.dart';
 import '../../models/course_model.dart';
-import '../../models/user_model.dart'; // Jangan lupa import UserModel
+import '../../models/user_model.dart';
+import '../notifications/notification_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -42,7 +43,7 @@ class HomeScreen extends StatelessWidget {
                     }
                   }
 
-                  return _buildHeader(displayName);
+                  return _buildHeader(context, displayName);
                 },
               ),
 
@@ -125,29 +126,51 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Header sekarang menerima String nama dinamis
-  Widget _buildHeader(String name) {
+  Widget _buildHeader(BuildContext context, String name) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Halo, $name! 👋",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+        // --- PERBAIKAN: Bungkus Column dengan Expanded ---
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Halo, $name! 👋",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                // Tambahkan ini biar kalau kepanjangan jadi "Halo, Deryl... 👋"
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-            ),
-            Text(
-              DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
-              style: GoogleFonts.inter(color: Colors.grey[600]),
-            ),
-          ],
+              Text(
+                DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
+                style: GoogleFonts.inter(color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
-        CircleAvatar(
-          backgroundColor: Colors.blue.shade100,
-          child: const Icon(Icons.notifications_outlined, color: Colors.blue),
+
+        // --------------------------------------------------
+        const SizedBox(width: 16), // Jarak aman antara teks dan avatar
+
+        InkWell(
+          onTap: () {
+            // Navigasi ke Halaman Notifikasi
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationScreen(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(50), // Biar efek kliknya bulat
+          child: CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            child: const Icon(Icons.notifications_outlined, color: Colors.blue),
+          ),
         ),
       ],
     );

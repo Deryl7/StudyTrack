@@ -70,51 +70,43 @@ class ScheduleScreen extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // TOMBOL EXPORT
+                      // TOMBOL EXPORT (UPDATED: Icon & Logic disamakan)
                       IconButton(
                         icon: const Icon(
-                          Icons.calendar_today,
+                          Icons.calendar_month_outlined,
                           color: Colors.blue,
-                        ),
+                        ), // Icon disamakan
+                        tooltip: "Export ke Google Calendar",
                         onPressed: () async {
-                          // LOGIKA MENCARI TANGGAL "SENIN" (misalnya) BERIKUTNYA
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Menghubungkan ke Google Calendar...",
+                              ),
+                            ),
+                          );
 
+                          // 1. Logic Cari Tanggal Jadwal Terdekat
                           final now = DateTime.now();
-                          // Parsing jam string "08:00" ke integer jam & menit
-                          final startParts = course.startTime.split(
-                            ':',
-                          ); // ["08", "00"]
-                          final endParts = course.endTime.split(
-                            ':',
-                          ); // ["10", "00"]
+                          final startParts = course.startTime.split(':');
+                          final endParts = course.endTime.split(':');
 
                           final startH = int.parse(startParts[0]);
                           final startM = int.parse(startParts[1]);
                           final endH = int.parse(endParts[0]);
                           final endM = int.parse(endParts[1]);
 
-                          // Cari tanggal untuk "Hari Kuliah" terdekat
-                          // course.day: 1=Senin ... 7=Minggu
-                          // now.weekday: 1=Senin ... 7=Minggu
                           int daysDiff = course.day - now.weekday;
-                          // Kalau harinya sudah lewat (atau hari ini tapi jamnya lewat),
-                          // kita targetkan minggu depan.
                           if (daysDiff < 0) {
                             daysDiff += 7;
                           } else if (daysDiff == 0) {
-                            // Kalau hari ini, cek jamnya. Kalau jam mulai < jam sekarang,
-                            // anggap jadwal minggu depan.
-                            final nowH = now.hour;
-                            final nowM = now.minute;
-                            if (startH < nowH ||
-                                (startH == nowH && startM < nowM)) {
+                            if (startH < now.hour ||
+                                (startH == now.hour && startM < now.minute)) {
                               daysDiff += 7;
                             }
                           }
 
                           final targetDate = now.add(Duration(days: daysDiff));
-
-                          // Gabungkan Tanggal + Jam
                           final startDateTime = DateTime(
                             targetDate.year,
                             targetDate.month,
@@ -130,7 +122,9 @@ class ScheduleScreen extends StatelessWidget {
                             endM,
                           );
 
-                          await CalendarService().insertEvent(
+                          // 2. Panggil Service (Sama seperti di Tugas)
+                          String
+                          resultMessage = await CalendarService().insertEvent(
                             title: "Kuliah: ${course.name}",
                             description:
                                 "Ruang: ${course.room}\nDosen: ${course.lecturer}",
@@ -138,12 +132,16 @@ class ScheduleScreen extends StatelessWidget {
                             endTime: endDateTime,
                           );
 
+                          // 3. Tampilkan Pesan Error/Sukses Asli
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Jadwal minggu ini ditambahkan ke Kalender!",
-                                ),
+                              SnackBar(
+                                content: Text(resultMessage),
+                                backgroundColor:
+                                    resultMessage.contains("SUKSES")
+                                    ? Colors.green
+                                    : Colors.red,
+                                duration: const Duration(seconds: 4),
                               ),
                             );
                           }
