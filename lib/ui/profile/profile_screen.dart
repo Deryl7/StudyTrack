@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 // Services & Models
 import '../../services/auth_service.dart';
@@ -180,45 +179,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // TOMBOL RESET GOOGLE (Versi Lebih Cerewet)
-                  TextButton(
-                    onPressed: () async {
-                      final GoogleSignIn googleSignIn = GoogleSignIn();
-                      String message = "Berhasil Reset!"; // Pesan default
-
-                      try {
-                        // Cek dulu apakah sedang login
-                        if (await googleSignIn.isSignedIn()) {
-                          await googleSignIn.disconnect();
-                        }
-                        await googleSignIn.signOut();
-
-                        message = "Google Disconnected. Siap Export ulang!";
-                      } catch (e) {
-                        // Tangkap errornya dan masukkan ke pesan
-                        message = "Gagal Reset: $e";
-                        print("ERROR RESET: $e");
-                      }
-
-                      // TAMPILKAN SNACKBAR (Apapun yang terjadi)
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                            backgroundColor: message.contains("Gagal")
-                                ? Colors.red
-                                : Colors.green,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Reset Izin Google",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
                 ],
               );
             },
