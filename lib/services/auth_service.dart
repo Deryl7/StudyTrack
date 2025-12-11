@@ -90,4 +90,52 @@ class AuthService {
       print("Error Logout: $e");
     }
   }
+
+  // Ubah Password
+  // Mengembalikan null jika SUKSES, atau pesan error jika GAGAL.
+  Future<String?> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return "User tidak ditemukan";
+
+      final email = user.email;
+      if (email == null) return "Email user tidak valid";
+
+      // 1. Re-Authenticate (Login ulang di background untuk verifikasi)
+      // Kita butuh kredensial dari password lama
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // 2. Jika Re-auth sukses, baru update password
+      await user.updatePassword(newPassword);
+
+      return null; // Sukses (tidak ada error)
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        return 'Password lama salah.';
+      } else if (e.code == 'weak-password') {
+        return 'Password baru terlalu lemah (min 6 karakter).';
+      }
+      return 'Gagal ubah password: ${e.message}';
+    } catch (e) {
+      return 'Terjadi kesalahan: $e';
+    }
+  }
+
+  // Reset Password (Lupa Password)
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print("Error Reset Password: $e");
+      rethrow; // Lempar error agar bisa ditangkap UI
+    }
+  }
 }

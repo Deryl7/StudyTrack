@@ -20,6 +20,73 @@ class _LoginPageState extends State<LoginPage> {
   String error = '';
   bool isLoading = false;
 
+  void _showResetPasswordDialog() {
+    final resetEmailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Reset Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Masukkan email Anda. Link reset password akan dikirim ke email tersebut.",
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: resetEmailController,
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = resetEmailController.text.trim();
+              if (email.isNotEmpty) {
+                try {
+                  await _auth.resetPassword(email);
+                  if (context.mounted) {
+                    Navigator.pop(context); // Tutup dialog
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Email reset terkirim! Cek kotak masuk/spam Anda.",
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Gagal mengirim email. Pastikan email terdaftar.",
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text("Kirim"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,6 +145,21 @@ class _LoginPageState extends State<LoginPage> {
                     validator: (val) =>
                         val!.length < 6 ? 'Password minimal 6 karakter' : null,
                     onChanged: (val) => setState(() => password = val),
+                  ),
+
+                  // Tombol Lupa Password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _showResetPasswordDialog,
+                      child: Text(
+                        "Lupa Password?",
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 12),

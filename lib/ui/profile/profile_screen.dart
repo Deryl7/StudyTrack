@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'change_password_screen.dart';
 
 // Services & Models
 import '../../services/auth_service.dart';
@@ -124,6 +125,19 @@ class ProfileScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const EditProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _buildProfileMenu(
+                    icon: Icons.lock_outline, // Icon Gembok
+                    title: "Ubah Password",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChangePasswordScreen(),
                         ),
                       );
                     },
